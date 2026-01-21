@@ -1,0 +1,52 @@
+services:
+  # Self-hosted Convex backend
+  convex-backend:
+    image: ghcr.io/get-convex/convex-backend:latest
+    stop_grace_period: 10s
+    stop_signal: SIGINT
+    ports:
+      - "3210:3210"   # Backend API
+      - "3211:3211"   # HTTP actions
+    volumes:
+      - convex_data:/convex/data
+    environment:
+      - CONVEX_CLOUD_ORIGIN=http://127.0.0.1:3210
+      - CONVEX_SITE_ORIGIN=http://127.0.0.1:3211
+      - RUST_LOG=info
+      - DOCUMENT_RETENTION_DELAY=172800
+    healthcheck:
+      test: curl -f http://localhost:3210/version
+      interval: 5s
+      start_period: 10s
+    restart: unless-stopped
+
+  # Convex dashboard (optional but useful for debugging)
+  convex-dashboard:
+    image: ghcr.io/get-convex/convex-dashboard:latest
+    stop_grace_period: 10s
+    stop_signal: SIGINT
+    ports:
+      - "6791:6791"
+    environment:
+      - NEXT_PUBLIC_DEPLOYMENT_URL=http://127.0.0.1:3210
+    depends_on:
+      convex-backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Nuxt frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NUXT_PUBLIC_CONVEX_URL=http://127.0.0.1:3210
+    depends_on:
+      convex-backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  convex_data:
