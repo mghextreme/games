@@ -1,22 +1,14 @@
 <script setup lang="ts">
-import { type HTMLAttributes, computed } from 'vue'
-import { cn } from '~/lib/utils'
+import type { HTMLAttributes } from "vue"
+import { cn } from "@/lib/utils"
 
 const props = defineProps<{
-  class?: HTMLAttributes['class']
+  class?: HTMLAttributes["class"]
 }>()
-
-const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props
-  return delegated
-})
 </script>
 
 <template>
-  <div
-    v-bind="delegatedProps"
-    :class="cn('flex flex-col space-y-1.5 p-6', props.class)"
-  >
+  <div :class="cn('flex flex-col gap-y-1.5 p-6', props.class)">
     <slot />
   </div>
 </template>
