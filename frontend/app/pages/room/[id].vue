@@ -1,13 +1,22 @@
 <script setup lang="ts">
 import Header from '~/components/layout/Header.vue'
 import PlayerList from '~/components/room/PlayerList.vue'
-import HostControls from '~/components/room/HostControls.vue'
+import GameOptions from '~/components/room/GameOptions.vue'
 import GameContainer from '~/components/games/GameContainer.vue'
 import JoinRoomModal from '~/components/room/JoinRoomModal.vue'
-import Toaster from '~/components/ui/toast/Toaster.vue'
-import Button from '~/components/ui/button/Button.vue'
-import Badge from '~/components/ui/badge/Badge.vue'
-import { ArrowLeft, Lock } from 'lucide-vue-next'
+import { Toaster } from '~/components/ui/sonner'
+import { Button } from '~/components/ui/button'
+import { Badge } from '~/components/ui/badge'
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '~/components/ui/drawer'
+import { ArrowLeft, Lock, Users, Trash, ChessQueen } from 'lucide-vue-next'
 import { getGame } from '~/lib/games/registry'
 
 const route = useRoute()
@@ -34,6 +43,8 @@ const {
 } = useRoom(roomId)
 
 const showPasswordModal = ref(false)
+const playersOpen = ref(false)
+const gameControlsOpen = ref(false)
 
 const game = computed(() => room.value ? getGame(room.value.gameType) : null)
 
@@ -94,9 +105,91 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen bg-background">
-    <Header />
+    <Header>
+      <template #default>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-bold">{{ room?.name }}</h1>
+          <Lock v-if="room?.password" class="h-5 w-5 text-muted-foreground" />
+          <div class="space-x-1">
+            <Badge variant="outline" class="ml-2">{{ game?.name || room?.gameType }}</Badge>
+            <Badge variant="outline" class="ml-2">{{ players.length }} / {{ room?.maxPlayers }}</Badge>
+            <Badge
+              :variant="room?.status === 'waiting' ? 'outline' : room?.status === 'playing' ? 'default' : 'secondary'"
+            >
+              {{ room?.status }}
+            </Badge>
+          </div>
+        </div>
+      </template>
+      <template #buttons>
+        <Button v-if="isHost" variant="destructive" size="icon" @click="handleDelete" title="Delete Room">
+          <Trash class="h-4 w-4" />
+        </Button>
+        <Button v-else variant="outline" size="icon" @click="handleLeave" title="Leave Room">
+          <ArrowLeft class="h-4 w-4" />
+        </Button>
 
-    <main class="container mx-auto px-4 py-8">
+        <Drawer v-model:open="playersOpen">
+          <DrawerTrigger as-child>
+            <Button variant="outline" size="icon" class="xl:hidden" title="Players">
+              <Users class="h-4 w-4" />
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>
+                Players
+                <Badge variant="outline" class="ml-2">{{ players.length }}</Badge>
+              </DrawerTitle>
+            </DrawerHeader>
+            <div class="px-4">
+              <PlayerList
+                :players="players"
+                :is-host="isHost"
+                :current-guest-id="guestId"
+                @kick="handleKick"
+              />
+            </div>
+            <DrawerFooter>
+              <DrawerClose>
+                <Button variant="outline" class="w-full">
+                  Close
+                </Button>
+              </DrawerClose>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+
+        <Drawer v-if="isHost" v-model:open="gameControlsOpen">
+          <DrawerTrigger as-child>
+            <Button variant="outline" size="icon" class="xl:hidden" title="Game Options">
+              <ChessQueen class="h-4 w-4" />
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>Game Options</DrawerTitle>
+            </DrawerHeader>
+            <div class="px-4">
+              <GameOptions
+                :room="room"
+                :can-start-game="canStartGame"
+                @update="updateRoom"
+              />
+            </div>
+            <DrawerFooter>
+              <DrawerClose>
+                <Button variant="outline" class="w-full">
+                  Close
+                </Button>
+              </DrawerClose>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      </template>
+    </Header>
+
+    <main class="container mx-auto px-4 py-6">
       <!-- Loading State -->
       <div v-if="isLoading" class="flex items-center justify-center py-12">
         <p class="text-muted-foreground">Loading room...</p>
@@ -114,36 +207,19 @@ onMounted(async () => {
       <!-- Room Content -->
       <template v-else>
         <!-- Header -->
-        <div class="mb-6">
-          <Button variant="ghost" size="sm" class="mb-4" @click="router.push('/')">
-            <ArrowLeft class="mr-2 h-4 w-4" />
-            Back to Rooms
-          </Button>
-
-          <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-bold">{{ room.name }}</h1>
-                <Lock v-if="room.password" class="h-5 w-5 text-muted-foreground" />
-                <Badge
-                  :variant="room.status === 'waiting' ? 'success' : room.status === 'playing' ? 'warning' : 'secondary'"
-                >
-                  {{ room.status }}
-                </Badge>
-              </div>
-              <p class="text-muted-foreground">
-                {{ game?.name || room.gameType }} - {{ players.length }} / {{ room.maxPlayers }} players
-              </p>
-            </div>
-
+        <div class="mb-6" v-if="isHost">
+          <div class="flex flex-col items-start justify-between gap-4">
             <div class="flex gap-2">
-              <Button v-if="currentPlayer && !isHost" variant="outline" @click="handleLeave">
-                Leave Room
+              <Button v-if="room.status === 'waiting'" variant="outline" @click="startGame">
+                Start Game
               </Button>
-              <Button v-if="isHost && room.status === 'finished'" variant="outline" @click="resetGame">
-                New Game
+              <Button v-if="room.status === 'finished'" variant="outline" @click="resetGame">
+                Start New Game
               </Button>
             </div>
+            <p v-if="room.status === 'waiting' && (!!game && players.length < game?.minPlayers)" class="text-xs text-muted-foreground">
+              Need {{ game?.minPlayers || 2 }} players to start
+            </p>
           </div>
         </div>
 
@@ -161,7 +237,7 @@ onMounted(async () => {
         </div>
 
         <!-- Room Layout -->
-        <div v-else class="grid gap-6 lg:grid-cols-[1fr,300px]">
+        <div v-else class="grid gap-6 xl:grid-cols-[1fr,320px]">
           <!-- Game Area -->
           <div class="rounded-lg border bg-card p-6">
             <GameContainer
@@ -174,23 +250,34 @@ onMounted(async () => {
 
           <!-- Sidebar -->
           <div class="space-y-6">
-            <!-- Player List -->
-            <PlayerList
-              :players="players"
-              :is-host="isHost"
-              :current-guest-id="guestId"
-              @kick="handleKick"
-            />
+            <div v-if="isHost" class="space-y-2 max-xl:hidden">
+              <h3 class="text-sm font-medium text-muted-foreground">
+                Host Controls
+              </h3>
 
-            <!-- Host Controls -->
-            <HostControls
-              v-if="isHost"
-              :room="room"
-              :can-start-game="canStartGame"
-              @update="updateRoom"
-              @start="startGame"
-              @delete="handleDelete"
-            />
+              <!-- Game Options -->
+              <GameOptions
+                :room="room"
+                @update="updateRoom"
+                @start="startGame"
+                @delete="handleDelete"
+              />
+            </div>
+
+            <div class="space-y-2 max-xl:hidden">
+              <h3 class="text-sm font-medium text-muted-foreground">
+                Players
+                <Badge variant="outline" class="ml-2">{{ players.length }}</Badge>
+              </h3>
+
+              <!-- Player List -->
+              <PlayerList
+                :players="players"
+                :is-host="isHost"
+                :current-guest-id="guestId"
+                @kick="handleKick"
+              />
+            </div>
           </div>
         </div>
       </template>

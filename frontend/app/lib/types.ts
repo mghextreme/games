@@ -57,10 +57,3 @@ export interface GuestState {
   guestId: string
   displayName: string
 }
-
-// Toast types
-export interface Toast {
-  id: string
-  message: string
-  type: 'success' | 'error' | 'info'
-}

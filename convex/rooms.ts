@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 
 // List all rooms (optionally filtered by search query)
 export const list = query({
@@ -9,7 +9,6 @@ export const list = query({
   handler: async (ctx, args) => {
     let rooms = await ctx.db
       .query("rooms")
-      .filter((q) => q.neq(q.field("status"), "finished"))
       .order("desc")
       .collect();
 
@@ -249,5 +248,46 @@ export const verifyPassword = query({
       return false;
     }
     return room.password === args.password;
+  },
+});
+
+// Internal mutation to clean up inactive rooms (called by cron)
+export const cleanupInactiveRooms = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const twelveHoursAgo = now - 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+
+    // Find all rooms that haven't had activity in 12 hours
+    const inactiveRooms = await ctx.db
+      .query("rooms")
+      .withIndex("by_last_activity", (q) =>
+        q.lt("lastActivity", twelveHoursAgo)
+      )
+      .collect();
+
+    let deletedCount = 0;
+
+    for (const room of inactiveRooms) {
+      // Delete all players in the room
+      const players = await ctx.db
+        .query("players")
+        .withIndex("by_room", (q) => q.eq("roomId", room._id))
+        .collect();
+
+      for (const player of players) {
+        await ctx.db.delete(player._id);
+      }
+
+      // Delete the room
+      await ctx.db.delete(room._id);
+      deletedCount++;
+    }
+
+    console.log(
+      `Cleaned up ${deletedCount} inactive rooms (no activity for 12+ hours)`
+    );
+
+    return { deletedCount, timestamp: now };
   },
 });

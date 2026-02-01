@@ -1,18 +1,9 @@
 <script setup lang="ts">
-import Dialog from '~/components/ui/dialog/Dialog.vue'
-import DialogContent from '~/components/ui/dialog/DialogContent.vue'
-import DialogDescription from '~/components/ui/dialog/DialogDescription.vue'
-import DialogFooter from '~/components/ui/dialog/DialogFooter.vue'
-import DialogHeader from '~/components/ui/dialog/DialogHeader.vue'
-import DialogTitle from '~/components/ui/dialog/DialogTitle.vue'
-import Button from '~/components/ui/button/Button.vue'
-import Input from '~/components/ui/input/Input.vue'
-import Label from '~/components/ui/label/Label.vue'
-import Select from '~/components/ui/select/Select.vue'
-import SelectContent from '~/components/ui/select/SelectContent.vue'
-import SelectItem from '~/components/ui/select/SelectItem.vue'
-import SelectTrigger from '~/components/ui/select/SelectTrigger.vue'
-import SelectValue from '~/components/ui/select/SelectValue.vue'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '~/components/ui/dialog'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { getGameList, getDefaultGame } from '~/lib/games/registry'
 
 const props = defineProps<{
@@ -25,6 +16,7 @@ const emit = defineEmits<{
 }>()
 
 const { createRoom, isCreating } = useCreateRoom()
+const { displayName } = useGuest()
 
 const name = ref('')
 const password = ref('')
@@ -32,6 +24,8 @@ const gameType = ref(getDefaultGame().id)
 const error = ref('')
 
 const games = getGameList()
+
+const defaultRoomName = computed(() => `${displayName.value}'s room`)
 
 const resetForm = () => {
   name.value = ''
@@ -43,12 +37,9 @@ const resetForm = () => {
 const handleSubmit = async () => {
   error.value = ''
 
-  if (!name.value.trim()) {
-    error.value = 'Room name is required'
-    return
-  }
+  const roomName = name.value.trim() || defaultRoomName.value
 
-  const result = await createRoom(name.value, password.value || undefined, gameType.value)
+  const result = await createRoom(roomName, password.value || undefined, gameType.value)
 
   if (result.success && result.roomId) {
     emit('update:open', false)
@@ -86,8 +77,7 @@ watch(() => props.open, (isOpen) => {
           <Input
             id="roomName"
             v-model="name"
-            placeholder="My awesome room"
-            required
+            :placeholder="defaultRoomName"
             maxlength="50"
           />
         </div>

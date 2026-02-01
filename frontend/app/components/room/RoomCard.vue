@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import type { RoomWithDetails } from '~/lib/types'
-import Card from '~/components/ui/card/Card.vue'
-import CardContent from '~/components/ui/card/CardContent.vue'
-import CardFooter from '~/components/ui/card/CardFooter.vue'
-import CardHeader from '~/components/ui/card/CardHeader.vue'
-import CardTitle from '~/components/ui/card/CardTitle.vue'
-import Badge from '~/components/ui/badge/Badge.vue'
-import Button from '~/components/ui/button/Button.vue'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 import { Lock, Users } from 'lucide-vue-next'
 import { getGame } from '~/lib/games/registry'
 
@@ -26,6 +22,10 @@ const isCurrentUserInRoom = computed(() => {
   return props.room.playerGuestIds?.includes(props.currentGuestId)
 })
 
+const isRoomFull = computed(() => {
+  return props.room.playerCount >= props.room.maxPlayers
+})
+
 const statusVariant = computed(() => {
   switch (props.room.status) {
     case 'waiting':
@@ -40,13 +40,15 @@ const statusVariant = computed(() => {
 const buttonText = computed(() => {
   if (isCurrentUserInRoom.value) return 'Rejoin'
   if (props.room.status === 'playing') return 'Game in Progress'
+  if (isRoomFull.value) return 'Room Full'
   return 'Join Room'
 })
 
 const isButtonDisabled = computed(() => {
   // Can always rejoin if you're a player
   if (isCurrentUserInRoom.value) return false
-  return props.room.status === 'playing'
+  // Disable if game in progress or room is full
+  return props.room.status === 'playing' || isRoomFull.value
 })
 </script>
 

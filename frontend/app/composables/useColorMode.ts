@@ -14,8 +14,20 @@ export function useColorMode() {
 
   const toggleColorMode = useToggle(isDark)
 
+  // Computed ref for tab binding (light/dark string values)
+  const mode = computed({
+    get: () => isDark.value ? 'dark' : 'light',
+    set: (value: 'light' | 'dark') => {
+      const shouldBeDark = value === 'dark'
+      if (isDark.value !== shouldBeDark) {
+        toggleColorMode()
+      }
+    }
+  })
+
   return {
     isDark: readonly(isDark),
     toggleColorMode,
+    mode,
   }
 }

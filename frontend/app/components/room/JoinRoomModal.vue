@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import type { RoomWithDetails } from '~/lib/types'
-import Dialog from '~/components/ui/dialog/Dialog.vue'
-import DialogContent from '~/components/ui/dialog/DialogContent.vue'
-import DialogDescription from '~/components/ui/dialog/DialogDescription.vue'
-import DialogFooter from '~/components/ui/dialog/DialogFooter.vue'
-import DialogHeader from '~/components/ui/dialog/DialogHeader.vue'
-import DialogTitle from '~/components/ui/dialog/DialogTitle.vue'
-import Button from '~/components/ui/button/Button.vue'
-import Input from '~/components/ui/input/Input.vue'
-import Label from '~/components/ui/label/Label.vue'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '~/components/ui/dialog'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 
 const props = defineProps<{
   open: boolean

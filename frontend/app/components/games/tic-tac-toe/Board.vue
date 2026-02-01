@@ -34,7 +34,7 @@ const getPlayerBySymbol = (symbol: 'X' | 'O') => {
 
 const handleCellClick = (row: number, col: number) => {
   if (!isMyTurn.value) return
-  if (props.gameState.board[row][col] !== null) return
+  if (props.gameState.board[row]![col] !== null) return
   if (props.gameState.winner || props.gameState.isDraw) return
 
   emit('move', { row, col })

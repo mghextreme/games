@@ -39,6 +39,7 @@ A multiplayer game room platform where users can create, search, and join rooms 
 **Indexes:**
 - `by_host` - Query rooms by hostGuestId
 - `by_status` - Query rooms by status
+- `by_last_activity` - Query rooms by lastActivity (used for cleanup)
 
 #### `players`
 - `_id` (Id<"players">, auto-generated)
@@ -65,7 +66,7 @@ A multiplayer game room platform where users can create, search, and join rooms 
 1. **One room per guest**: A guest can only be in ONE room at a time (as host or player)
 2. **One hosted room**: A guest can only host ONE active room at a time
 3. **Host identification**: Host is identified by `hostGuestId` field
-4. **Auto-cleanup**: Rooms auto-delete after 12 hours of no activity
+4. **Auto-cleanup**: Rooms auto-delete after 12 hours of no activity (via hourly cron job)
 
 ### Player Lifecycle
 1. **Join**: Create player record, automatic real-time subscription via Convex
@@ -163,6 +164,7 @@ games/
 │   ├── rooms.ts               # Room queries and mutations
 │   ├── players.ts             # Player queries and mutations
 │   ├── games.ts               # Game state mutations
+│   ├── crons.ts               # Scheduled jobs (cleanup)
 │   └── _generated/            # Auto-generated types
 └── frontend/
     ├── Dockerfile

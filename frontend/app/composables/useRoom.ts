@@ -255,11 +255,28 @@ export function useRoom(roomId: string) {
     }
   }
 
-  // Auto-start heartbeat if already in room
-  watch(currentPlayer, (player) => {
+  // Track if we've already updated connection status to avoid loops
+  let hasUpdatedConnection = false
+
+  // Auto-start heartbeat if already in room and update connection status
+  watch(currentPlayer, async (player, oldPlayer) => {
     if (player) {
+      // Only update connection status once when player first appears
+      // This avoids infinite loops since updating triggers subscription changes
+      if (!hasUpdatedConnection) {
+        hasUpdatedConnection = true
+        try {
+          await updateConnectionMutation.mutate({
+            guestId: guestId.value,
+            isConnected: true,
+          })
+        } catch (err) {
+          console.error('Failed to update connection status:', err)
+        }
+      }
       startHeartbeat()
     } else {
+      hasUpdatedConnection = false
       stopHeartbeat()
     }
   }, { immediate: true })

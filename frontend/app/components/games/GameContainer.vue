@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Room, PlayerWithDetails } from '~/lib/types'
 import { getGame } from '~/lib/games/registry'
+import { Trophy, Minus } from 'lucide-vue-next'
 
 const props = defineProps<{
   room: Room
@@ -18,6 +19,32 @@ const GameComponent = computed(() => {
   if (!game.value) return null
   return defineAsyncComponent(game.value.component)
 })
+
+// Get game results for finished state
+const gameResults = computed(() => {
+  if (!props.room.gameState || !game.value) return null
+  
+  const winnerId = game.value.checkWinner(props.room.gameState)
+  const isDraw = game.value.checkDraw(props.room.gameState)
+  
+  if (winnerId) {
+    const winner = props.players.find(p => p.guestId === winnerId)
+    return {
+      type: 'winner' as const,
+      winner,
+      winnerName: winner?.displayName || 'Unknown Player',
+      isCurrentUser: winnerId === props.currentPlayerId,
+    }
+  }
+  
+  if (isDraw) {
+    return {
+      type: 'draw' as const,
+    }
+  }
+  
+  return null
+})
 </script>
 
 <template>
@@ -28,7 +55,7 @@ const GameComponent = computed(() => {
           Waiting for the host to start the game...
         </p>
         <p class="mt-2 text-sm text-muted-foreground">
-          {{ game?.name }} requires {{ game?.minPlayers }}-{{ game?.maxPlayers }} players
+          {{ game?.name }} requires {{ game?.minPlayers }}<template v-if="game?.minPlayers != game?.maxPlayers">-{{ game?.maxPlayers }}</template> players
         </p>
       </div>
     </template>
@@ -49,10 +76,44 @@ const GameComponent = computed(() => {
 
     <template v-else-if="room.status === 'finished'">
       <div class="py-8 text-center">
-        <p class="text-lg text-muted-foreground">
-          Game finished!
-        </p>
-        <p class="mt-2 text-sm text-muted-foreground">
+        <!-- Winner Result -->
+        <template v-if="gameResults?.type === 'winner'">
+          <div class="mb-4 flex justify-center">
+            <div class="rounded-full bg-yellow-100 p-4 dark:bg-yellow-900/30">
+              <Trophy class="h-12 w-12 text-yellow-600 dark:text-yellow-400" />
+            </div>
+          </div>
+          <p class="text-2xl font-bold">
+            <template v-if="gameResults.isCurrentUser">
+              <span class="text-green-600 dark:text-green-400">You won!</span>
+            </template>
+            <template v-else>
+              <span class="text-foreground">{{ gameResults.winnerName }}</span>
+              <span class="text-muted-foreground"> wins!</span>
+            </template>
+          </p>
+        </template>
+
+        <!-- Draw Result -->
+        <template v-else-if="gameResults?.type === 'draw'">
+          <div class="mb-4 flex justify-center">
+            <div class="rounded-full bg-gray-100 p-4 dark:bg-gray-800">
+              <Minus class="h-12 w-12 text-gray-600 dark:text-gray-400" />
+            </div>
+          </div>
+          <p class="text-2xl font-bold text-muted-foreground">
+            It's a draw!
+          </p>
+        </template>
+
+        <!-- No result available (fallback) -->
+        <template v-else>
+          <p class="text-lg text-muted-foreground">
+            Game finished!
+          </p>
+        </template>
+
+        <p class="mt-4 text-sm text-muted-foreground">
           The host can start a new game.
         </p>
       </div>

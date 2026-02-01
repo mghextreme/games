@@ -4,8 +4,8 @@ import Header from '~/components/layout/Header.vue'
 import RoomList from '~/components/room/RoomList.vue'
 import CreateRoomModal from '~/components/room/CreateRoomModal.vue'
 import JoinRoomModal from '~/components/room/JoinRoomModal.vue'
-import Toaster from '~/components/ui/toast/Toaster.vue'
-import Button from '~/components/ui/button/Button.vue'
+import { Toaster } from '~/components/ui/sonner'
+import { Button } from '~/components/ui/button'
 import { Plus } from 'lucide-vue-next'
 import { api } from '../../../convex/_generated/api'
 
@@ -83,14 +83,13 @@ const handleRoomCreated = (roomId: string) => {
     <Header />
 
     <main class="container mx-auto px-4 py-8">
-      <div class="mb-6 flex items-center justify-between">
+      <div class="mb-6 flex items-center justify-between gap-3 max-sm:flex-col max-sm:items-start">
         <div>
           <h1 class="text-2xl font-bold">Game Rooms</h1>
           <p class="text-muted-foreground">Join a room or create your own to play with friends</p>
         </div>
-        <Button class="gap-2" @click="isCreateModalOpen = true">
+        <Button class="gap-2" variant="outline" size="icon" @click="isCreateModalOpen = true" title="Create room">
           <Plus class="h-4 w-4" />
-          Create Room
         </Button>
       </div>
 
@@ -98,14 +97,15 @@ const handleRoomCreated = (roomId: string) => {
         :rooms="rooms"
         :is-loading="isLoading"
         :current-guest-id="guestId"
-        v-model:search-query="searchQuery"
+        :search-query="searchQuery"
         @join="handleJoinClick"
       />
     </main>
 
-    <CreateRoomModal v-model:open="isCreateModalOpen" @created="handleRoomCreated" />
+    <CreateRoomModal :open="isCreateModalOpen" @update:open="isCreateModalOpen = $event" @created="handleRoomCreated" />
     <JoinRoomModal
-      v-model:open="isJoinModalOpen"
+      :open="isJoinModalOpen"
+      @update:open="isJoinModalOpen = $event"
       :room="selectedRoom"
       @join="joinRoom(selectedRoom?._id as string, $event)"
     />

@@ -40,5 +40,5 @@ export function getGameList(): GameDefinition<unknown, unknown>[] {
 }
 
 export function getDefaultGame(): GameDefinition<unknown, unknown> {
-  return gameRegistry['tic-tac-toe']
+  return gameRegistry['tic-tac-toe']!
 }

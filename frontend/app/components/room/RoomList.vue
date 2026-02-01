@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { RoomWithDetails } from '~/lib/types'
-import Input from '~/components/ui/input/Input.vue'
+import { Input } from '~/components/ui/input'
 import RoomCard from './RoomCard.vue'
 import { Search } from 'lucide-vue-next'
 
