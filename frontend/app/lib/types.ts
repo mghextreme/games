@@ -38,18 +38,35 @@ export interface PlayerWithDetails extends Player {
 }
 
 // Game types
-export interface GameDefinition<TState = unknown, TMove = unknown> {
+
+/** Base interface for a player within a game. Each game extends this with game-specific attributes. */
+export interface GamePlayer {
+  id: string
+}
+
+/** Base interface for game state. Each game extends this with game-specific fields. */
+export interface GameState<TPlayer extends GamePlayer = GamePlayer> {
+  players: TPlayer[]
+}
+
+/** Score values must be sortable via compareTo. Higher = better. */
+export interface Comparable<T> {
+  compareTo(other: T): number
+}
+
+export type PlayerScores<TScore extends Comparable<TScore>> = Map<string, TScore>
+
+export interface GameDefinition<TState = unknown, TMove = unknown, TScore extends Comparable<TScore> = Comparable<unknown>> {
   id: string
   name: string
   description: string
   minPlayers: number
   maxPlayers: number
   component: () => Promise<{ default: unknown }>
-  createInitialState: (playerIds: string[]) => TState
+  setupGame: (playerIds: string[]) => TState
   validateMove: (state: TState, move: TMove, playerId: string) => boolean
   applyMove: (state: TState, move: TMove, playerId: string) => TState
-  checkWinner: (state: TState) => string | null
-  checkDraw: (state: TState) => boolean
+  getGameScore: (state: TState) => PlayerScores<TScore> | null
 }
 
 // Guest types

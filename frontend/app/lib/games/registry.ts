@@ -10,8 +10,8 @@ export const gameRegistry: Record<string, GameDefinition<unknown, unknown>> = {
     minPlayers: 2,
     maxPlayers: 2,
     component: () => import('~/components/games/tic-tac-toe/Board.vue'),
-    createInitialState: (playerIds: string[]) =>
-      ticTacToeEngine.createInitialState(playerIds) as unknown,
+    setupGame: (playerIds: string[]) =>
+      ticTacToeEngine.setupGame(playerIds) as unknown,
     validateMove: (state: unknown, move: unknown, playerId: string) =>
       ticTacToeEngine.validateMove(
         state as TicTacToeState,
@@ -24,10 +24,8 @@ export const gameRegistry: Record<string, GameDefinition<unknown, unknown>> = {
         move as TicTacToeMove,
         playerId
       ) as unknown,
-    checkWinner: (state: unknown) =>
-      ticTacToeEngine.checkWinner(state as TicTacToeState),
-    checkDraw: (state: unknown) =>
-      ticTacToeEngine.checkDraw(state as TicTacToeState),
+    getGameScore: (state: unknown) =>
+      ticTacToeEngine.getGameScore(state as TicTacToeState),
   } as GameDefinition<unknown, unknown>,
 }
 

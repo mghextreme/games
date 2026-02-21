@@ -14,6 +14,7 @@ const emit = defineEmits<{
 }>()
 
 const game = computed(() => getGame(props.room.gameType))
+const isHost = computed(() => props.currentPlayerId === props.room.hostGuestId)
 
 const GameComponent = computed(() => {
   if (!game.value) return null
@@ -24,22 +25,42 @@ const GameComponent = computed(() => {
 const gameResults = computed(() => {
   if (!props.room.gameState || !game.value) return null
   
-  const winnerId = game.value.checkWinner(props.room.gameState)
-  const isDraw = game.value.checkDraw(props.room.gameState)
+  const scores = game.value.getGameScore(props.room.gameState)
   
-  if (winnerId) {
-    const winner = props.players.find(p => p.guestId === winnerId)
+  if (!scores) return null
+  
+  // Find the highest score to determine winner(s)
+  let bestPlayerId: string | null = null
+  let bestScore: { compareTo(other: unknown): number } | null = null
+  let allEqual = true
+  const entries = [...scores.entries()]
+  
+  for (const [playerId, score] of entries) {
+    if (bestScore === null || score.compareTo(bestScore) > 0) {
+      bestPlayerId = playerId
+      bestScore = score
+    }
+  }
+  
+  // Check if all scores are equal (draw)
+  if (entries.length > 1) {
+    const [, firstScore] = entries[0]
+    allEqual = entries.every(([, score]) => score.compareTo(firstScore) === 0)
+  }
+  
+  if (allEqual) {
+    return {
+      type: 'draw' as const,
+    }
+  }
+  
+  if (bestPlayerId) {
+    const winner = props.players.find(p => p.guestId === bestPlayerId)
     return {
       type: 'winner' as const,
       winner,
       winnerName: winner?.displayName || 'Unknown Player',
-      isCurrentUser: winnerId === props.currentPlayerId,
-    }
-  }
-  
-  if (isDraw) {
-    return {
-      type: 'draw' as const,
+      isCurrentUser: bestPlayerId === props.currentPlayerId,
     }
   }
   
@@ -52,10 +73,12 @@ const gameResults = computed(() => {
     <template v-if="room.status === 'waiting'">
       <div class="py-8 text-center">
         <p class="text-lg text-muted-foreground">
-          Waiting for the host to start the game...
-        </p>
-        <p class="mt-2 text-sm text-muted-foreground">
-          {{ game?.name }} requires {{ game?.minPlayers }}<template v-if="game?.minPlayers != game?.maxPlayers">-{{ game?.maxPlayers }}</template> players
+          <template v-if="isHost">
+            Waiting for you to start the game...
+          </template>
+          <template v-else>
+            Waiting for the host to start the game...
+          </template>
         </p>
       </div>
     </template>

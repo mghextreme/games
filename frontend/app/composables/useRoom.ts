@@ -159,7 +159,7 @@ export function useRoom(roomId: string) {
 
       // Use guestIds as player identifiers for the game
       const playerIds = players.value.map((p) => p.guestId)
-      const initialState = game.createInitialState(playerIds)
+      const initialState = game.setupGame(playerIds)
 
       await startGameMutation.mutate({
         roomId: convexRoomId,

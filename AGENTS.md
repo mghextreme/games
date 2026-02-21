@@ -111,18 +111,24 @@ A multiplayer game room platform where users can create, search, and join rooms 
 
 ### Game Registry
 ```typescript
-interface GameDefinition {
+/** Score values must be sortable via compareTo. Higher = better. */
+interface Comparable<T> {
+  compareTo(other: T): number
+}
+
+type PlayerScores<TScore extends Comparable<TScore>> = Map<string, TScore>
+
+interface GameDefinition<TState, TMove, TScore extends Comparable<TScore>> {
   id: string
   name: string
   description: string
   minPlayers: number
   maxPlayers: number
   component: () => Promise<Component>
-  createInitialState: (playerIds: string[]) => GameState
+  setupGame: (playerIds: string[]) => GameState
   validateMove: (state: GameState, move: Move, playerId: string) => boolean
   applyMove: (state: GameState, move: Move) => GameState
-  checkWinner: (state: GameState) => string | null
-  checkDraw: (state: GameState) => boolean
+  getGameScore: (state: GameState) => PlayerScores<TScore> | null
 }
 ```
 
@@ -137,12 +143,25 @@ interface GameDefinition {
 
 ### State Structure
 ```typescript
-interface TicTacToeState {
+// Base interfaces (all games extend these)
+interface GamePlayer {
+  id: string
+}
+
+interface GameState<TPlayer extends GamePlayer = GamePlayer> {
+  players: TPlayer[]
+}
+
+// Tic Tac Toe specific
+interface TicTacToePlayer extends GamePlayer {
+  symbol: 'X' | 'O'
+}
+
+interface TicTacToeState extends GameState<TicTacToePlayer> {
   board: (string | null)[][]  // 3x3, playerId or null
   currentTurn: string         // playerId
   winner: string | null
   isDraw: boolean
-  players: { id: string; symbol: 'X' | 'O' }[]
 }
 ```
 

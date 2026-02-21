@@ -1,6 +1,7 @@
-import type { TicTacToeState, TicTacToeMove } from './types'
+import type { TicTacToeState, TicTacToeMove, TicTacToeScore } from './types'
+import type { PlayerScores } from '~/lib/types'
 
-export function createInitialState(playerIds: string[]): TicTacToeState {
+export function setupGame(playerIds: string[]): TicTacToeState {
   if (playerIds.length !== 2) {
     throw new Error('Tic Tac Toe requires exactly 2 players')
   }
@@ -80,7 +81,7 @@ export function applyMove(
   return newState
 }
 
-export function checkWinner(state: TicTacToeState): string | null {
+function checkWinner(state: TicTacToeState): string | null {
   const { board } = state
 
   // Check rows
@@ -108,7 +109,7 @@ export function checkWinner(state: TicTacToeState): string | null {
   return null
 }
 
-export function checkDraw(state: TicTacToeState): boolean {
+function checkDraw(state: TicTacToeState): boolean {
   // If there's a winner, it's not a draw
   if (state.winner) {
     return false
@@ -124,6 +125,33 @@ export function checkDraw(state: TicTacToeState): boolean {
   }
 
   return true
+}
+
+/**
+ * Returns the score for each player, or null if the game is still in progress.
+ * Winner gets score 1, loser/draw gets score 0.
+ */
+export function getGameScore(state: TicTacToeState): PlayerScores<TicTacToeScore> | null {
+  const winnerId = checkWinner(state)
+  const isDraw = checkDraw(state)
+
+  if (!winnerId && !isDraw) {
+    return null
+  }
+
+  const scores: PlayerScores<TicTacToeScore> = new Map()
+
+  for (const player of state.players) {
+    const value = winnerId === player.id ? 1 : 0
+    scores.set(player.id, {
+      value,
+      compareTo(other: TicTacToeScore) {
+        return this.value - other.value
+      },
+    })
+  }
+
+  return scores
 }
 
 export function getPlayerSymbol(state: TicTacToeState, playerId: string): 'X' | 'O' | null {
