@@ -281,9 +281,9 @@ docker compose up
 # Generate admin key (first time only)
 docker compose exec convex-backend ./generate_admin_key.sh
 
-# Create .env.local with the admin key
-echo "CONVEX_SELF_HOSTED_URL='http://127.0.0.1:3210'" > .env.local
-echo "CONVEX_SELF_HOSTED_ADMIN_KEY='<your-key>'" >> .env.local
+# Create .env with the admin key
+echo "CONVEX_SELF_HOSTED_URL='http://127.0.0.1:3210'" > .env
+echo "CONVEX_SELF_HOSTED_ADMIN_KEY='<your-key>'" >> .env
 
 # Deploy Convex functions
 pnpm convex dev

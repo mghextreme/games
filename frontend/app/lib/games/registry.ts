@@ -1,6 +1,8 @@
 import type { GameDefinition } from '~/lib/types'
 import type { TicTacToeState, TicTacToeMove, TicTacToeSettings } from './tic-tac-toe/types'
+import type { ReversiState, ReversiMove, ReversiSettings } from './reversi/types'
 import * as ticTacToeEngine from './tic-tac-toe/engine'
+import * as reversiEngine from './reversi/engine'
 
 export const gameRegistry: Record<string, GameDefinition<unknown, unknown>> = {
   'tic-tac-toe': {
@@ -30,6 +32,35 @@ export const gameRegistry: Record<string, GameDefinition<unknown, unknown>> = {
       ) as unknown,
     getGameScore: (state: unknown) =>
       ticTacToeEngine.getGameScore(state as TicTacToeState),
+  } as GameDefinition<unknown, unknown>,
+
+  'reversi': {
+    id: 'reversi',
+    name: 'Reversi',
+    description: 'Classic strategy game. Outflank your opponent to capture their discs!',
+    minPlayers: 2,
+    maxPlayers: 2,
+    component: () => import('~/components/games/reversi/Board.vue'),
+    resultsComponent: () => import('~/components/games/reversi/Results.vue'),
+    settingsComponent: () => import('~/components/games/reversi/Settings.vue'),
+    defaultSettings: (playerIds: string[]) =>
+      reversiEngine.defaultSettings(playerIds),
+    setupGame: (playerIds: string[], settings: unknown) =>
+      reversiEngine.setupGame(playerIds, settings as ReversiSettings) as unknown,
+    validateMove: (state: unknown, move: unknown, playerId: string) =>
+      reversiEngine.validateMove(
+        state as ReversiState,
+        move as ReversiMove,
+        playerId
+      ),
+    applyMove: (state: unknown, move: unknown, playerId: string) =>
+      reversiEngine.applyMove(
+        state as ReversiState,
+        move as ReversiMove,
+        playerId
+      ) as unknown,
+    getGameScore: (state: unknown) =>
+      reversiEngine.getGameScore(state as ReversiState),
   } as GameDefinition<unknown, unknown>,
 }
 
