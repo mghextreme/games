@@ -1,7 +1,17 @@
-import type { TicTacToeState, TicTacToeMove, TicTacToeScore } from './types'
+import type { TicTacToeState, TicTacToeMove, TicTacToeScore, TicTacToeSettings } from './types'
 import type { PlayerScores } from '~/lib/types'
 
-export function setupGame(playerIds: string[]): TicTacToeState {
+export function defaultSettings(playerIds: string[]): TicTacToeSettings {
+  return {
+    playerSettings: {
+      [playerIds[0]]: { symbol: 'X' },
+      [playerIds[1]]: { symbol: 'O' },
+    },
+    startingPlayerId: playerIds[0],
+  }
+}
+
+export function setupGame(playerIds: string[], settings: TicTacToeSettings): TicTacToeState {
   if (playerIds.length !== 2) {
     throw new Error('Tic Tac Toe requires exactly 2 players')
   }
@@ -12,13 +22,13 @@ export function setupGame(playerIds: string[]): TicTacToeState {
       [null, null, null],
       [null, null, null],
     ],
-    currentTurn: playerIds[0],
+    currentTurn: settings.startingPlayerId,
     winner: null,
     isDraw: false,
-    players: [
-      { id: playerIds[0], symbol: 'X' },
-      { id: playerIds[1], symbol: 'O' },
-    ],
+    players: playerIds.map((id) => ({
+      id,
+      symbol: settings.playerSettings[id].symbol,
+    })),
   }
 }
 

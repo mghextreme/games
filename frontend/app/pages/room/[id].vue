@@ -18,6 +18,7 @@ import {
 } from '~/components/ui/drawer'
 import { ArrowLeft, Lock, Users, Trash, ChessQueen } from 'lucide-vue-next'
 import { getGame } from '~/lib/games/registry'
+import type { GameSettings } from '~/lib/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -45,6 +46,7 @@ const {
 const showPasswordModal = ref(false)
 const playersOpen = ref(false)
 const gameControlsOpen = ref(false)
+const gameSettings = ref<GameSettings>({ playerSettings: {} })
 
 const game = computed(() => room.value ? getGame(room.value.gameType) : null)
 
@@ -210,7 +212,7 @@ onMounted(async () => {
         <div class="mb-6" v-if="isHost">
           <div class="flex flex-col items-start justify-between gap-4">
             <div class="flex gap-2">
-              <Button v-if="room.status === 'waiting'" variant="outline" @click="startGame">
+              <Button v-if="room.status === 'waiting'" variant="outline" @click="startGame(gameSettings)">
                 Start Game
               </Button>
               <Button v-if="room.status === 'finished'" variant="outline" @click="resetGame">
@@ -245,6 +247,7 @@ onMounted(async () => {
               :players="players"
               :current-player-id="guestId"
               @move="handleMove"
+              @update:settings="gameSettings = $event"
             />
           </div>
 

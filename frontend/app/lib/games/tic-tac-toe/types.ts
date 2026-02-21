@@ -1,4 +1,4 @@
-import type { Comparable, GamePlayer, GameState } from '~/lib/types'
+import type { Comparable, GamePlayer, GameState, GameSettings, PlayerSettings } from '~/lib/types'
 
 export interface TicTacToePlayer extends GamePlayer {
   symbol: 'X' | 'O'
@@ -18,4 +18,14 @@ export interface TicTacToeMove {
 
 export interface TicTacToeScore extends Comparable<TicTacToeScore> {
   value: number
+}
+
+export interface TicTacToePlayerSettings extends PlayerSettings {
+  symbol: 'X' | 'O'
+}
+
+export interface TicTacToeSettings extends GameSettings {
+  playerSettings: Record<string, TicTacToePlayerSettings>
+  /** Player ID of who goes first */
+  startingPlayerId: string
 }

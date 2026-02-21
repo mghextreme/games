@@ -1,5 +1,5 @@
 import type { GameDefinition } from '~/lib/types'
-import type { TicTacToeState, TicTacToeMove } from './tic-tac-toe/types'
+import type { TicTacToeState, TicTacToeMove, TicTacToeSettings } from './tic-tac-toe/types'
 import * as ticTacToeEngine from './tic-tac-toe/engine'
 
 export const gameRegistry: Record<string, GameDefinition<unknown, unknown>> = {
@@ -10,8 +10,12 @@ export const gameRegistry: Record<string, GameDefinition<unknown, unknown>> = {
     minPlayers: 2,
     maxPlayers: 2,
     component: () => import('~/components/games/tic-tac-toe/Board.vue'),
-    setupGame: (playerIds: string[]) =>
-      ticTacToeEngine.setupGame(playerIds) as unknown,
+    resultsComponent: () => import('~/components/games/tic-tac-toe/Results.vue'),
+    settingsComponent: () => import('~/components/games/tic-tac-toe/Settings.vue'),
+    defaultSettings: (playerIds: string[]) =>
+      ticTacToeEngine.defaultSettings(playerIds),
+    setupGame: (playerIds: string[], settings: unknown) =>
+      ticTacToeEngine.setupGame(playerIds, settings as TicTacToeSettings) as unknown,
     validateMove: (state: unknown, move: unknown, playerId: string) =>
       ticTacToeEngine.validateMove(
         state as TicTacToeState,

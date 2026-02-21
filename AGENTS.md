@@ -118,25 +118,36 @@ interface Comparable<T> {
 
 type PlayerScores<TScore extends Comparable<TScore>> = Map<string, TScore>
 
-interface GameDefinition<TState, TMove, TScore extends Comparable<TScore>> {
+/** Base interface for per-player settings (e.g. symbol, color). Keyed by player ID in GameSettings. */
+interface PlayerSettings {}
+
+/** Base interface for game settings. playerSettings is a dictionary keyed by player ID. */
+interface GameSettings {
+  playerSettings: Record<string, PlayerSettings>
+}
+
+interface GameDefinition<TState, TMove, TScore extends Comparable<TScore>, TSettings extends GameSettings> {
   id: string
   name: string
   description: string
   minPlayers: number
   maxPlayers: number
   component: () => Promise<Component>
-  setupGame: (playerIds: string[]) => GameState
-  validateMove: (state: GameState, move: Move, playerId: string) => boolean
-  applyMove: (state: GameState, move: Move) => GameState
-  getGameScore: (state: GameState) => PlayerScores<TScore> | null
+  resultsComponent: () => Promise<Component>
+  settingsComponent: () => Promise<Component>
+  defaultSettings: (playerIds: string[]) => TSettings
+  setupGame: (playerIds: string[], settings: TSettings) => TState
+  validateMove: (state: TState, move: Move, playerId: string) => boolean
+  applyMove: (state: TState, move: Move, playerId: string) => TState
+  getGameScore: (state: TState) => PlayerScores<TScore> | null
 }
 ```
 
 ### Adding New Games
 1. Create game directory: `frontend/app/lib/games/{game-id}/`
-2. Implement `types.ts` with state and move types
-3. Implement `engine.ts` with game logic
-4. Create Vue component in `frontend/app/components/games/{game-id}/`
+2. Implement `types.ts` with state, move, score, and settings types (extending `GamePlayer`, `GameState`, `GameSettings`, `Comparable`)
+3. Implement `engine.ts` with game logic (`defaultSettings`, `setupGame`, `validateMove`, `applyMove`, `getGameScore`)
+4. Create Vue components in `frontend/app/components/games/{game-id}/` (Board + Results + Settings)
 5. Register in `frontend/app/lib/games/registry.ts`
 
 ## Tic Tac Toe Implementation
@@ -152,6 +163,10 @@ interface GameState<TPlayer extends GamePlayer = GamePlayer> {
   players: TPlayer[]
 }
 
+interface GameSettings {
+  playerSettings: Record<string, PlayerSettings>
+}
+
 // Tic Tac Toe specific
 interface TicTacToePlayer extends GamePlayer {
   symbol: 'X' | 'O'
@@ -162,6 +177,15 @@ interface TicTacToeState extends GameState<TicTacToePlayer> {
   currentTurn: string         // playerId
   winner: string | null
   isDraw: boolean
+}
+
+interface TicTacToePlayerSettings extends PlayerSettings {
+  symbol: 'X' | 'O'
+}
+
+interface TicTacToeSettings extends GameSettings {
+  playerSettings: Record<string, TicTacToePlayerSettings>
+  startingPlayerId: string
 }
 ```
 

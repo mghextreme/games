@@ -49,6 +49,14 @@ export interface GameState<TPlayer extends GamePlayer = GamePlayer> {
   players: TPlayer[]
 }
 
+/** Base interface for per-player settings. Each game extends this with game-specific player configuration (e.g. symbol, color). */
+export interface PlayerSettings {}
+
+/** Base interface for game settings. Each game extends this with game-specific configuration. */
+export interface GameSettings {
+  playerSettings: Record<string, PlayerSettings>
+}
+
 /** Score values must be sortable via compareTo. Higher = better. */
 export interface Comparable<T> {
   compareTo(other: T): number
@@ -56,14 +64,17 @@ export interface Comparable<T> {
 
 export type PlayerScores<TScore extends Comparable<TScore>> = Map<string, TScore>
 
-export interface GameDefinition<TState = unknown, TMove = unknown, TScore extends Comparable<TScore> = Comparable<unknown>> {
+export interface GameDefinition<TState = unknown, TMove = unknown, TScore extends Comparable<TScore> = Comparable<unknown>, TSettings extends GameSettings = GameSettings> {
   id: string
   name: string
   description: string
   minPlayers: number
   maxPlayers: number
   component: () => Promise<{ default: unknown }>
-  setupGame: (playerIds: string[]) => TState
+  resultsComponent: () => Promise<{ default: unknown }>
+  settingsComponent: () => Promise<{ default: unknown }>
+  defaultSettings: (playerIds: string[]) => TSettings
+  setupGame: (playerIds: string[], settings: TSettings) => TState
   validateMove: (state: TState, move: TMove, playerId: string) => boolean
   applyMove: (state: TState, move: TMove, playerId: string) => TState
   getGameScore: (state: TState) => PlayerScores<TScore> | null

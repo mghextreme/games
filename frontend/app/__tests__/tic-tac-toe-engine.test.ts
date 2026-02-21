@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { 
   setupGame, 
+  defaultSettings,
   validateMove, 
   applyMove, 
   getGameScore 
@@ -12,7 +13,7 @@ describe('Tic Tac Toe Engine', () => {
 
   describe('setupGame', () => {
     it('should create a valid initial state', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       
       expect(state.board).toHaveLength(3)
       expect(state.board[0]).toHaveLength(3)
@@ -26,21 +27,21 @@ describe('Tic Tac Toe Engine', () => {
     })
 
     it('should throw error with wrong number of players', () => {
-      expect(() => setupGame(['player1'])).toThrow()
-      expect(() => setupGame(['player1', 'player2', 'player3'])).toThrow()
+      expect(() => setupGame(['player1'], defaultSettings(['player1']))).toThrow()
+      expect(() => setupGame(['player1', 'player2', 'player3'], defaultSettings(['player1', 'player2', 'player3']))).toThrow()
     })
   })
 
   describe('validateMove', () => {
     it('should validate a legal move', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       const move: TicTacToeMove = { row: 0, col: 0 }
       
       expect(validateMove(state, move, 'player1')).toBe(true)
     })
 
     it('should reject move on occupied cell', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       state.board[0][0] = 'player1'
       const move: TicTacToeMove = { row: 0, col: 0 }
       
@@ -48,21 +49,21 @@ describe('Tic Tac Toe Engine', () => {
     })
 
     it('should reject move when not player turn', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       const move: TicTacToeMove = { row: 0, col: 0 }
       
       expect(validateMove(state, move, 'player2')).toBe(false)
     })
 
     it('should reject move out of bounds', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       const move: TicTacToeMove = { row: 3, col: 0 }
       
       expect(validateMove(state, move, 'player1')).toBe(false)
     })
 
     it('should reject move when game is over', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       state.winner = 'player1'
       const move: TicTacToeMove = { row: 0, col: 0 }
       
@@ -72,7 +73,7 @@ describe('Tic Tac Toe Engine', () => {
 
   describe('applyMove', () => {
     it('should apply a valid move and switch turns', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       const move: TicTacToeMove = { row: 0, col: 0 }
       
       const newState = applyMove(state, move, 'player1')
@@ -84,7 +85,7 @@ describe('Tic Tac Toe Engine', () => {
     })
 
     it('should not mutate original state', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       const originalBoard = state.board.map(row => [...row])
       const move: TicTacToeMove = { row: 1, col: 1 }
       
@@ -96,7 +97,7 @@ describe('Tic Tac Toe Engine', () => {
 
   describe('getGameScore', () => {
     it('should return null when game is in progress', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       state.board = [
         ['player1', 'player2', null],
         [null, null, null],
@@ -107,7 +108,7 @@ describe('Tic Tac Toe Engine', () => {
     })
 
     it('should return winner with score 1 on horizontal win', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       state.board = [
         ['player1', 'player1', 'player1'],
         [null, null, null],
@@ -120,7 +121,7 @@ describe('Tic Tac Toe Engine', () => {
     })
 
     it('should return winner with score 1 on vertical win', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       state.board = [
         ['player1', null, null],
         ['player1', null, null],
@@ -133,7 +134,7 @@ describe('Tic Tac Toe Engine', () => {
     })
 
     it('should return winner with score 1 on diagonal win (top-left to bottom-right)', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       state.board = [
         ['player2', null, null],
         [null, 'player2', null],
@@ -146,7 +147,7 @@ describe('Tic Tac Toe Engine', () => {
     })
 
     it('should return winner with score 1 on diagonal win (top-right to bottom-left)', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       state.board = [
         [null, null, 'player2'],
         [null, 'player2', null],
@@ -159,7 +160,7 @@ describe('Tic Tac Toe Engine', () => {
     })
 
     it('should return equal scores on draw', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       state.board = [
         ['player1', 'player2', 'player1'],
         ['player1', 'player2', 'player2'],
@@ -173,7 +174,7 @@ describe('Tic Tac Toe Engine', () => {
     })
 
     it('should make winner score sort higher than loser score', () => {
-      const state = setupGame(playerIds)
+      const state = setupGame(playerIds, defaultSettings(playerIds))
       state.board = [
         ['player1', 'player1', 'player1'],
         ['player2', 'player2', null],
@@ -190,7 +191,7 @@ describe('Tic Tac Toe Engine', () => {
 
   describe('Game Flow', () => {
     it('should play a complete game to player 1 victory', () => {
-      let state = setupGame(playerIds)
+      let state = setupGame(playerIds, defaultSettings(playerIds))
       
       // Player 1 moves
       state = applyMove(state, { row: 0, col: 0 }, 'player1')
@@ -216,7 +217,7 @@ describe('Tic Tac Toe Engine', () => {
     })
 
     it('should play a complete game to a draw', () => {
-      let state = setupGame(playerIds)
+      let state = setupGame(playerIds, defaultSettings(playerIds))
       
       // Create a draw pattern:
       // X | O | X

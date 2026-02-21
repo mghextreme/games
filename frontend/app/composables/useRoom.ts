@@ -1,6 +1,6 @@
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import type { Room, Player, PlayerWithDetails } from '~/lib/types'
+import type { Room, PlayerWithDetails, GameSettings } from '~/lib/types'
 import { getGame } from '~/lib/games/registry'
 
 export function useRoom(roomId: string) {
@@ -147,7 +147,7 @@ export function useRoom(roomId: string) {
     }
   }
 
-  const startGame = async () => {
+  const startGame = async (settings: GameSettings) => {
     if (!canStartGame.value || !room.value) return
 
     try {
@@ -159,7 +159,7 @@ export function useRoom(roomId: string) {
 
       // Use guestIds as player identifiers for the game
       const playerIds = players.value.map((p) => p.guestId)
-      const initialState = game.setupGame(playerIds)
+      const initialState = game.setupGame(playerIds, settings)
 
       await startGameMutation.mutate({
         roomId: convexRoomId,
