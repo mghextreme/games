@@ -90,30 +90,6 @@ const handlePass = () => {
   emit('move', { row: -1, col: -1, pass: true })
 }
 
-const cellSizeClass = computed(() => {
-  switch (props.gameState.boardSize) {
-    case 6: return 'h-12 w-12 sm:h-14 sm:w-14'
-    case 10: return 'h-8 w-8 sm:h-10 sm:w-10'
-    default: return 'h-10 w-10 sm:h-12 sm:w-12'
-  }
-})
-
-const discSizeClass = computed(() => {
-  switch (props.gameState.boardSize) {
-    case 6: return 'h-9 w-9 sm:h-11 sm:w-11'
-    case 10: return 'h-5 w-5 sm:h-7 sm:w-7'
-    default: return 'h-7 w-7 sm:h-9 sm:w-9'
-  }
-})
-
-const hintSizeClass = computed(() => {
-  switch (props.gameState.boardSize) {
-    case 6: return 'h-3 w-3'
-    case 10: return 'h-2 w-2'
-    default: return 'h-2.5 w-2.5'
-  }
-})
-
 const gridColsStyle = computed(() => ({
   gridTemplateColumns: `repeat(${props.gameState.boardSize}, minmax(0, 1fr))`,
 }))
@@ -124,7 +100,7 @@ const getCellValue = (row: number, col: number): string | null => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center gap-4">
+  <div class="flex w-full flex-col items-center gap-4">
     <!-- Game Status -->
     <div class="text-center">
       <template v-if="gameState.winner">
@@ -168,7 +144,7 @@ const getCellValue = (row: number, col: number): string | null => {
 
     <!-- Board -->
     <div
-      class="grid gap-0.5 rounded-lg bg-emerald-900 p-1.5 shadow-lg dark:bg-emerald-950"
+      class="grid w-full max-w-[600px] gap-[2px] rounded-lg bg-emerald-900 p-1 shadow-lg sm:gap-0.5 sm:p-1.5 dark:bg-emerald-950"
       :style="gridColsStyle"
     >
       <template v-for="row in gameState.boardSize" :key="`row-${row}`">
@@ -176,8 +152,7 @@ const getCellValue = (row: number, col: number): string | null => {
           v-for="col in gameState.boardSize"
           :key="`${row}-${col}`"
           :class="[
-            cellSizeClass,
-            'relative flex items-center justify-center rounded-sm bg-emerald-700 transition-colors dark:bg-emerald-800',
+            'relative flex aspect-square items-center justify-center rounded-sm bg-emerald-700 transition-colors dark:bg-emerald-800',
             validMoveSet.has(`${row - 1},${col - 1}`) ? 'cursor-pointer hover:bg-emerald-600 dark:hover:bg-emerald-700' : '',
             getCellValue(row - 1, col - 1) === null && !validMoveSet.has(`${row - 1},${col - 1}`) ? 'cursor-default' : '',
           ]"
@@ -188,8 +163,7 @@ const getCellValue = (row: number, col: number): string | null => {
           <span
             v-if="getCellValue(row - 1, col - 1) !== null"
             :class="[
-              discSizeClass,
-              'rounded-full border-2 border-white/80 shadow-md',
+              'disc-size rounded-full border-2 border-white/80 shadow-md',
               flippedCellSet.has(`${row - 1},${col - 1}`) ? 'animate-disc-flip' : '',
               lastPlacedCell === `${row - 1},${col - 1}` ? 'animate-disc-place' : '',
             ]"
@@ -199,7 +173,7 @@ const getCellValue = (row: number, col: number): string | null => {
           <!-- Valid move hint -->
           <span
             v-else-if="validMoveSet.has(`${row - 1},${col - 1}`)"
-            :class="[hintSizeClass, 'rounded-full']"
+            class="hint-size rounded-full"
             :style="{ backgroundColor: myColor ? myColor + '55' : 'rgba(255,255,255,0.2)' }"
           />
         </button>
@@ -260,5 +234,15 @@ const getCellValue = (row: number, col: number): string | null => {
 
 .animate-disc-place {
   animation: disc-place 0.35s ease-out;
+}
+
+.disc-size {
+  width: 75%;
+  height: 75%;
+}
+
+.hint-size {
+  width: 25%;
+  height: 25%;
 }
 </style>

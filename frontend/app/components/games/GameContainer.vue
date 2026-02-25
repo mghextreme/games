@@ -58,7 +58,7 @@ const handleSettingsUpdate = (newSettings: GameSettings) => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center">
+  <div class="flex w-full flex-col items-center">
     <template v-if="room.status === 'waiting'">
       <div class="py-8 text-center">
         <p class="text-lg text-muted-foreground">

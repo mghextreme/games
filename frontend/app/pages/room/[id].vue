@@ -241,7 +241,7 @@ onMounted(async () => {
         <!-- Room Layout -->
         <div v-else class="grid gap-6 xl:grid-cols-[1fr,320px]">
           <!-- Game Area -->
-          <div class="rounded-lg border bg-card p-6">
+          <div class="sm:rounded-lg sm:border sm:bg-card sm:p-6">
             <GameContainer
               :room="room"
               :players="players"
