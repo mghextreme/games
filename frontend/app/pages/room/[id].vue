@@ -4,7 +4,6 @@ import PlayerList from '~/components/room/PlayerList.vue'
 import GameOptions from '~/components/room/GameOptions.vue'
 import GameContainer from '~/components/games/GameContainer.vue'
 import JoinRoomModal from '~/components/room/JoinRoomModal.vue'
-import { Toaster } from '~/components/ui/sonner'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
 import {
@@ -85,8 +84,10 @@ watch([room, isLoading], ([newRoom, loading]) => {
 })
 
 // Watch for being kicked (player disappears from list)
+const { error: showError } = useToast()
 watch(currentPlayer, (player, oldPlayer) => {
   if (oldPlayer && !player && !isLoading.value) {
+    showError('You have been removed from the room')
     router.push('/')
   }
 })
@@ -291,6 +292,5 @@ onMounted(async () => {
       :room="room as any"
       @join="handleJoin"
     />
-    <Toaster />
   </div>
 </template>

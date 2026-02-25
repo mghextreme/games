@@ -4,7 +4,6 @@ import Header from '~/components/layout/Header.vue'
 import RoomList from '~/components/room/RoomList.vue'
 import CreateRoomModal from '~/components/room/CreateRoomModal.vue'
 import JoinRoomModal from '~/components/room/JoinRoomModal.vue'
-import { Toaster } from '~/components/ui/sonner'
 import { Button } from '~/components/ui/button'
 import { Plus } from 'lucide-vue-next'
 import { api } from '../../../convex/_generated/api'
@@ -109,6 +108,5 @@ const handleRoomCreated = (roomId: string) => {
       :room="selectedRoom"
       @join="joinRoom(selectedRoom?._id as string, $event)"
     />
-    <Toaster />
   </div>
 </template>
